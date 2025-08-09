@@ -4,6 +4,14 @@
 
 This project deploys AWS infrastructure using Terraform and CloudFormation with S3, EC2, and RDS resources.
 
+## CloudFormation
+
+![cloudformation-stacks](./screenshots/cloudformation-stacks.png)
+
+## Terraform
+
+![Terraform](./screenshots/terraform.png)
+
 ## Prerequisites
 
 - AWS CLI configured
@@ -104,6 +112,6 @@ terraform destroy
 
 # CloudFormation
 aws cloudformation delete-stack --stack-name ray-s3-stack
-aws cloudformation delete-stack --stack-name ray-ec2-stack
+aws cloudformation delete-stack --stack-name ray-ec2-vpc-stack
 aws cloudformation delete-stack --stack-name ray-rds-stack
 ```
