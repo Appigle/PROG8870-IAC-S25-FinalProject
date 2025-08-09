@@ -1,0 +1,97 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'RDS MySQL instance with public access'
+
+Parameters:
+  RayProjectName:
+    Type: String
+    Default: ray-infrastructure
+    Description: Project name for resource naming
+
+  RayEnvironment:
+    Type: String
+    Default: dev
+    Description: Environment name
+
+  RayDBName:
+    Type: String
+    Default: ray_db
+    Description: Database name
+
+  RayDBUsername:
+    Type: String
+    Default: ray
+    Description: Database username
+
+  RayDBPassword:
+    Type: String
+    Default: ray_pwd_123!
+    NoEcho: true
+    Description: Database password
+
+Resources:
+  RayRDSSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for RDS instance
+      SubnetIds:
+        - !ImportValue
+          'Fn::Sub': '${RayProjectName}-public-subnet-1-id'
+        - !ImportValue
+          'Fn::Sub': '${RayProjectName}-public-subnet-2-id'
+      Tags:
+        - Key: Name
+          Value: !Sub '${RayProjectName}-db-subnet-group'
+
+  RayRDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for RDS instance
+      VpcId: !ImportValue
+        'Fn::Sub': '${RayProjectName}-vpc-id'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub '${RayProjectName}-rds-sg'
+
+  RayRDSInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub '${RayProjectName}-rds'
+      AllocatedStorage: 20
+      StorageType: gp2
+      Engine: mysql
+      EngineVersion: 8.0
+      DBInstanceClass: db.t3.micro
+      DBName: !Ref RayDBName
+      MasterUsername: !Ref RayDBUsername
+      MasterUserPassword: !Ref RayDBPassword
+      DBSubnetGroupName: !Ref RayRDSSubnetGroup
+      VPCSecurityGroups:
+        - !Ref RayRDSSecurityGroup
+      PubliclyAccessible: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${RayProjectName}-rds'
+
+Outputs:
+  RayRDSInstanceId:
+    Description: RDS Instance ID
+    Value: !Ref RayRDSInstance
+    Export:
+      Name: !Sub '${RayProjectName}-rds-instance-id'
+
+  RayRDSEndpoint:
+    Description: RDS Instance Endpoint
+    Value: !GetAtt RayRDSInstance.Endpoint.Address
+    Export:
+      Name: !Sub '${RayProjectName}-rds-endpoint'
+
+  RayRDSPort:
+    Description: RDS Instance Port
+    Value: !GetAtt RayRDSInstance.Endpoint.Port
+    Export:
+      Name: !Sub '${RayProjectName}-rds-port'

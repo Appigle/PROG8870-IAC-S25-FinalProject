@@ -1,0 +1,8 @@
+ray_aws_region    = "us-east-1"
+ray_project_name  = "ray-infrastructure"
+ray_environment   = "dev"
+ray_vpc_cidr      = "10.0.0.0/16"
+ray_instance_type = "t2.micro"
+ray_db_name       = "ray_db"
+ray_db_username   = "ray"
+ray_db_password   = "ray_pwd_123" 

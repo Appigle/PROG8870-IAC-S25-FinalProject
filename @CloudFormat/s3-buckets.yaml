@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'S3 Buckets with versioning and public access block'
+
+Parameters:
+  RayProjectName:
+    Type: String
+    Default: ray-infrastructure
+    Description: Project name for resource naming
+
+  RayEnvironment:
+    Type: String
+    Default: dev
+    Description: Environment name
+
+Resources:
+  RayS3Bucket1:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${RayProjectName}-cf-bucket-1-${RayEnvironment}'
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  RayS3Bucket2:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${RayProjectName}-cf-bucket-2-${RayEnvironment}'
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  RayS3Bucket3:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${RayProjectName}-cf-bucket-3-${RayEnvironment}'
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+Outputs:
+  RayS3Bucket1Name:
+    Description: Name of first S3 bucket
+    Value: !Ref RayS3Bucket1
+    Export:
+      Name: !Sub '${RayProjectName}-s3-bucket-1-name'
+
+  RayS3Bucket2Name:
+    Description: Name of second S3 bucket
+    Value: !Ref RayS3Bucket2
+    Export:
+      Name: !Sub '${RayProjectName}-s3-bucket-2-name'
+
+  RayS3Bucket3Name:
+    Description: Name of third S3 bucket
+    Value: !Ref RayS3Bucket3
+    Export:
+      Name: !Sub '${RayProjectName}-s3-bucket-3-name'

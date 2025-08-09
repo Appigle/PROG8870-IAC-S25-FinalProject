@@ -1,0 +1,35 @@
+# Terraform
+.terraform/
+
+# Terraform variables with sensitive data
+
+# AWS credentials
+.aws/
+credentials
+config
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+deploy-cloudformation.sh
+deploy-terraform.sh
+plan.md

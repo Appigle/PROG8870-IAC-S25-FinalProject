@@ -1,0 +1,152 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'EC2 Instance with VPC and networking components'
+
+Parameters:
+  RayProjectName:
+    Type: String
+    Default: ray-infrastructure
+    Description: Project name for resource naming
+
+  RayEnvironment:
+    Type: String
+    Default: dev
+    Description: Environment name
+
+  RayInstanceType:
+    Type: String
+    Default: t2.micro
+    Description: EC2 instance type
+
+Resources:
+  RayVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${RayProjectName}-vpc'
+
+  RayInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub '${RayProjectName}-igw'
+
+  RayVPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref RayVPC
+      InternetGatewayId: !Ref RayInternetGateway
+
+  RayPublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref RayVPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${RayProjectName}-public-subnet-1'
+
+  RayPublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref RayVPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${RayProjectName}-public-subnet-2'
+
+  RayPublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref RayVPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${RayProjectName}-public-rt'
+
+  RayPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: RayVPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref RayPublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref RayInternetGateway
+
+  RayPublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref RayPublicSubnet1
+      RouteTableId: !Ref RayPublicRouteTable
+
+  RayPublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref RayPublicSubnet2
+      RouteTableId: !Ref RayPublicRouteTable
+
+  RayEC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for EC2 instance
+      VpcId: !Ref RayVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub '${RayProjectName}-ec2-sg'
+
+  RayEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0c02fb55956c7d316
+      InstanceType: !Ref RayInstanceType
+      SubnetId: !Ref RayPublicSubnet1
+      SecurityGroupIds:
+        - !Ref RayEC2SecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub '${RayProjectName}-ec2'
+
+Outputs:
+  RayVPCId:
+    Description: VPC ID
+    Value: !Ref RayVPC
+    Export:
+      Name: !Sub '${RayProjectName}-vpc-id'
+
+  RayPublicSubnet1Id:
+    Description: Public Subnet 1 ID
+    Value: !Ref RayPublicSubnet1
+    Export:
+      Name: !Sub '${RayProjectName}-public-subnet-1-id'
+
+  RayPublicSubnet2Id:
+    Description: Public Subnet 2 ID
+    Value: !Ref RayPublicSubnet2
+    Export:
+      Name: !Sub '${RayProjectName}-public-subnet-2-id'
+
+  RayEC2PublicIP:
+    Description: Public IP of EC2 instance
+    Value: !GetAtt RayEC2Instance.PublicIp
+    Export:
+      Name: !Sub '${RayProjectName}-ec2-public-ip'
+
+  RayEC2InstanceId:
+    Description: EC2 Instance ID
+    Value: !Ref RayEC2Instance
+    Export:
+      Name: !Sub '${RayProjectName}-ec2-instance-id'
